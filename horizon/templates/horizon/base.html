@@ -1,0 +1,66 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" class="!scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block page_title %}{% endblock %}</title>
+
+    <link href="{% static 'tailwind.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Import Roboto Flex from Google Fonts -->
+    <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@100..1000&display=swap"> -->
+
+    <style>
+        body {
+            font-family: 'Roboto Flex', sans-serif;
+        }
+    </style>
+
+    <!-- Google Ads -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1785022650944518" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <header class="bg-white p-4 text-black shadow-md border-b border-gray-200">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="{% url 'home' %}" class="text-xl font-bold">MySite</a>
+            
+            <!-- Mobile Menu Button -->
+            <button id="menu-btn" class="md:hidden text-black focus:outline-none" aria-label="Menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+            
+            <!-- Navbar Links -->
+            <nav class="hidden md:flex space-x-6">
+                <a href="{% url 'products_category_page_path_name' %}" class="hover:text-gray-500">Products</a>
+                <a href="{% url 'news_type_page_path_name' %}" class="hover:text-gray-500">News</a>
+            </nav>
+        </div>
+        
+        <!-- Mobile Dropdown Menu -->
+        <nav id="mobile-menu" class="hidden md:hidden bg-gray-100 p-4">
+            <a href="{% url 'products_category_page_path_name' %}" class="block py-2 hover:text-gray-500">Products</a>
+            <a href="{% url 'news_type_page_path_name' %}" class="block py-2 hover:text-gray-500">News</a>
+        </nav>
+    </header>
+    
+    <script>
+        document.getElementById('menu-btn').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+    </script>
+
+    <main class="max-w-1xl mx-auto px-4 sm:px-4 lg:px-6 py-6 sm:py-4 lg:py-6">
+        {% block page_content %}{% endblock %}
+    </main>
+
+    <footer class="bg-white p-4 text-center text-gray-600 border-t border-b border-gray-200">
+        <p>&copy; 2025 AI Content Site. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,19 @@
+{% extends "horizon/base.html" %}
+
+{% block page_title %}Page Not Found | Horizon{% endblock %}
+
+{% block page_content %}
+<div class="flex flex-col items-center justify-center h-screen text-center">
+    <!-- Large 404 Text -->
+    <h1 class="text-9xl font-bold">404</h1>
+
+    <!-- Page Not Found Message -->
+    <h2 class="text-3xl font-bold text-gray-900 mt-4">Page not found</h2>
+    <p class="text-gray-600 text-lg mt-2">We’re sorry, we seem to have lost this page</p>
+
+    <!-- Back to Homepage Button -->
+    <a href="/" class="mt-6 inline-block px-6 py-3 bg-green-700 text-white text-lg font-semibold rounded-full shadow-md hover:bg-green-800 transition">
+        Back to Homepage
+    </a>
+</div>
+{% endblock %}

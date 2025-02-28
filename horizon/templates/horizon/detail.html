@@ -1,0 +1,98 @@
+{% extends "horizon/base.html" %}
+
+{% block page_title %}{{ content.meta_title}} | Horizon{% endblock %}
+
+{% block page_content %}
+<div class="container max-w-8xl mx-auto px-12 md:px-24 py-6 mx-8 bg-white rounded-lg">
+
+    <!-- Title & Metadata -->
+    <div class="border-b pb-4 mb-6">
+        <h1 class="text-5xl font-bold text-gray-900 mb-2">{{ content.title }}</h1>
+        <h2 class="text-md text-gray-700 font-medium mb-4">{{ content.description }}</h2>
+        
+        <div class="text-gray-600 text-sm flex flex-wrap gap-2">
+            <span>⏳ Read Time: {{ content.read_time }} min</span>
+            <span>📅 Updated: {{ content.updated_at | date:"l F j, Y" }}</span>
+        </div>
+    
+        <!-- Author Info -->
+        <div class="flex items-center gap-4 mt-6 p-4 bg-gray-100 rounded-lg">
+            {% if author.profile_image %}
+                <img 
+                    loading="lazy" 
+                    src="{{ author.profile_image }}" 
+                    alt="{{ author.first_name }} {{ author.last_name }}" 
+                    {% if author.get_profile_srcset %}srcset="{{ author.get_profile_srcset }}"{% endif %}
+                    class="w-14 h-14 rounded-full object-cover">
+            {% else %}
+                <!-- Default avatar if no profile image -->
+                <div class="w-14 h-14 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-lg">
+                    {{ author.first_name.0 }}{{ author.last_name.0 }}
+                </div>
+            {% endif %}
+            
+            <div>
+                <p class="text-lg font-semibold text-gray-900">
+                    {{ author.first_name }} {{ author.middle_name|default:'' }} {{ author.last_name }}
+                </p>
+                <p class="text-sm text-gray-600">{{ author.title }}</p>
+                {% comment %} <p class="text-xs text-gray-500 mt-1">{{ author.description }}</p> {% endcomment %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content Section -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <!-- Left Column: Main Content -->
+        <div class="md:col-span-3">
+            <figure>
+                <img 
+                    src="{{ content.image_featured }}" 
+                    alt="{{ content.title }}" 
+                    {% if content.get_srcset %}srcset="{{ content.get_srcset }}"{% endif %}
+                    class="w-full rounded-md mb-2"
+                >
+                <figcaption class="text-xs text-gray-800 text-center mt-1">
+                    <span class="italic">{{ content.image_caption }}</span>
+                    <span class="italic"> | </span>
+                    <span class="italic">{{ content.image_by }}</span>
+                </figcaption>
+            </figure>
+
+            <!-- Main Content -->
+            <div class="mt-10 mx-8 md:mx-16 text-gray-800 leading-relaxed">{{ content.html_body | safe }}</div>
+        </div>
+
+        <!-- Right Column: Related Posts and Ads -->
+        <div class="md:col-span-1">
+            <h2 class="text-xl font-semibold mb-4">Related</h2>
+            <div class="space-y-6">
+                {% for post in related_posts %}
+                <a href="{% url 'content_detail_path_name' post.type.name post.slug %}" 
+                   class="flex items-start gap-4 border-b border-gray-300 pb-2 rounded-lg transition duration-300 cursor-pointer block group">
+                    <img 
+                        loading="lazy" 
+                        src="{{ post.image_featured }}" 
+                        alt="{{ post.image_caption }}"
+                        {% if post.get_srcset %}srcset="{{ post.get_srcset }}"{% endif %}
+                        class="w-24 h-18 object-cover rounded-md transition-transform duration-300 ease-in-out group-hover:scale-105">
+                    <div>
+                        <h3 class="text-sm font-bold leading-tight text-gray-800 transition group-hover:text-blue-500 group-hover:underline">
+                            {{ post.title }}
+                        </h3>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            <!-- Ad Section -->
+            <div class="mt-8">
+                <h2 class="text-xl font-semibold mb-4">Sponsored Ads</h2>
+                <div class="bg-gray-100 p-4 rounded-lg text-center">
+                    <!-- Replace the placeholder below with your ad code -->
+                    advertisement
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
