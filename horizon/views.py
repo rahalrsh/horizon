@@ -2,9 +2,6 @@ from django.shortcuts import render, get_object_or_404
 from .models import Content, Category, Type, Tag
 from django.db.models import Q
 from django.core.paginator import Paginator
-import os
-from django.http import FileResponse, Http404
-from django.conf import settings
 
 
 def _getContentByTag(tag_name, limit):
@@ -19,37 +16,53 @@ def _getContentByTag(tag_name, limit):
     return content
 
 
-def _getContentByParentCategory(parent_category_name, tag_name, limit):
-    # Get "tech" category
-    parant_category = Category.objects.filter(name=parent_category_name).first()
-    tag = Tag.objects.filter(name=tag_name).first() if tag_name else None
-    if parant_category:
-        # Get all subcategories of "parent_category_name" including itself
-        sub_categories = Category.objects.filter(Q(parent=parant_category) | Q(id=parant_category.id))
-        # Query all content under "parent_category_name" and its subcategories
-        if tag:
-            all_content = Content.objects.filter(category__in=sub_categories, tags=tag, publish=True).order_by('-published_at')[:limit]
-        else:
-            all_content = Content.objects.filter(category__in=sub_categories, publish=True).order_by('-published_at')[:limit]
-    else:
-        all_content = Content.objects.none()  # Return empty if "tech" not found
-    
-    return all_content
+def _get_filtered_content(include_categories, filter_categories=None, exclude_categories=None, include_tags=None, exclude_tags=None, limit=None):
+    """
+    Filters Content based on included/excluded categories and tags.
 
-def _getContentByCategory(parent_category_name, category_name, tag_name, limit):
-    parent_category = Category.objects.filter(name=parent_category_name).first()
-    category = Category.objects.filter(parent=parent_category, name=category_name).first()
-    tag = Tag.objects.filter(name=tag_name).first() if tag_name else None
-    
-    if category and tag:
-        content = Content.objects.filter(category=category, tags=tag, publish=True).order_by('-published_at')[:limit]
-    elif category and not tag:
-        # Get content that belongs directly to the specified category
-        content = Content.objects.filter(category=category, publish=True).order_by('-published_at')[:limit]
-    else:
-        content = Content.objects.none()  # Return an empty queryset if the category is not found
-    
-    return content
+    Args:
+        include_categories (list of Category): Required categories.
+        filter_categories (list of Category): Further filter by these categories.
+        exclude_categories (list of Category, optional): Categories to exclude.
+        include_tags (list of Tag, optional): Tags to include.
+        exclude_tags (list of Tag, optional): Tags to exclude.
+        limit (int, optional): Maximum number of results. If None, return all.
+
+    Returns:
+        QuerySet of Content objects.
+    """
+
+    if not include_categories:
+        raise ValueError("include_categories is required and cannot be empty.")
+
+    # Start with the required categories filter
+    query = Q(categories__in=include_categories)
+
+    # Exclude specific categories (if provided)
+    if exclude_categories:
+        query &= ~Q(categories__in=exclude_categories)
+
+    # Further filter content that has the specific category (e.g., "hardware" or "devices").
+    if filter_categories:
+        query &= Q(categories__in=filter_categories)
+
+    # Include specific tags (if provided)
+    if include_tags:
+        query &= Q(tags__in=include_tags)
+
+    # Exclude specific tags (if provided)
+    if exclude_tags:
+        query &= ~Q(tags__in=exclude_tags)
+
+    # Apply filters and ensure unique results
+    content_qs = Content.objects.filter(query, publish=True).distinct().order_by('-published_at')
+
+    # Apply limit if specified
+    if limit:
+        content_qs = content_qs[:limit]
+
+    return content_qs
+
 
 def _getContentByType(type_name, tag_name, limit):
     # Get "tech" category
@@ -85,10 +98,9 @@ def content_detail(request, type, slug):
     content_type = get_object_or_404(Type, name=type)
     content = get_object_or_404(Content, type=content_type, slug=slug)
 
-
     # Fetch related posts in the same category (excluding the current post)
     related_content = Content.objects.filter(
-        category=content.category,  # Same category
+        categories__in=content.categories.all(),  # Match any of the same categories
         publish=True
     ).exclude(slug=slug)  # Exclude current post
     related_posts = related_content.order_by('-published_at')[:3]  # Get latest 3 related posts
@@ -122,15 +134,54 @@ def news_type_page(request):
 
 
 def products_category_page(request):
-    featured_contents = _getContentByParentCategory("products", "Category Main", 3)
-    hardware_content = _getContentByCategory("products", "hardware", "Category Featured", 3)
-    devices_content = _getContentByCategory("products", "devices", "Category Featured", 3)
-    wearables_content = _getContentByCategory("products", "wearables", "Category Featured", 3)
-    assistants_content = _getContentByCategory("products", "assistants", "Category Featured", 3)
-    latest_contents = _getContentByParentCategory("products", "", 100)
+    products_category = Category.objects.filter(name="products").first()
+    hardware_category = Category.objects.filter(name="hardware").first()
+    devices_category = Category.objects.filter(name="devices").first()
+    wearables_category = Category.objects.filter(name="wearables").first()
+    assistants_category = Category.objects.filter(name="assistants").first()
+
+    category_main_tag = Tag.objects.filter(name="Category Main").first()
+    category_featured_tag = Tag.objects.filter(name="Category Featured").first()
+
+    featured_contents = _get_filtered_content(
+        include_categories=[products_category],
+        include_tags=[category_main_tag],
+        limit=3
+    )
+
+    hardware_content = _get_filtered_content(
+        include_categories=[products_category, hardware_category],
+        include_tags=[category_featured_tag],
+        filter_categories=[hardware_category],
+        limit=3
+    )
+
+    devices_content = _get_filtered_content(
+        include_categories=[products_category, devices_category],
+        include_tags=[category_featured_tag],
+        filter_categories=[devices_category],
+        limit=3
+    )
+
+    wearables_content = _get_filtered_content(
+        include_categories=[products_category, wearables_category],
+        include_tags=[category_featured_tag],
+        filter_categories=[wearables_category],
+        limit=3
+    )
+
+    assistants_content = _get_filtered_content(
+        include_categories=[products_category, assistants_category],
+        include_tags=[category_featured_tag],
+        filter_categories=[assistants_category],
+        limit=3
+    )
+
+
+    latest_contents = _get_filtered_content(include_categories=[products_category], limit=100)
     
     # Paginate news articles (5 per page)
-    latest_contents_paginator = Paginator(latest_contents, 3)
+    latest_contents_paginator = Paginator(latest_contents, 2)
     page_number = request.GET.get("page")
     latest_contents_page = latest_contents_paginator.get_page(page_number)
 

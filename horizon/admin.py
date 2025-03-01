@@ -17,18 +17,17 @@ class TagAdmin(admin.ModelAdmin):
     ordering = ('name',)  # Sort by name
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'parent')  # Show category and its parent
-    list_filter = ('parent',)  # Add filter for parent category
+    list_display = ('name',)  # Show category and its parent
     search_fields = ('name',)  # Allow searching by category name
 
 
 class ContentAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'type', 'get_tags', 'published_at', 'updated_at', 'publish')  # Show these fields in the list view
-    list_filter = ('category', 'published_at', 'publish')  # Add filters for category and date
+    list_display = ('title', 'type', 'get_categories', 'get_tags', 'published_at', 'updated_at', 'publish')  # Show these fields in the list view
+    list_filter = ('categories', 'published_at', 'publish')  # Add filters for category and date
     search_fields = ('title', 'body')  # Enable search functionality
     ordering = ('-published_at',)  # Show newest first
     # Allow multiple tag selections without overwriting
-    filter_horizontal = ('tags',)  # Makes tag selection easier in admin panel
+    filter_horizontal = ('tags', 'categories',)  # Makes tag selection easier in admin panel
     readonly_fields = ('html_body',)
 
     def get_tags(self, obj):
@@ -37,6 +36,10 @@ class ContentAdmin(admin.ModelAdmin):
         """
         return ", ".join([tag.name for tag in obj.tags.all()])
     
+    def get_categories(self, obj):
+        return ", ".join([category.name for category in obj.categories.all()])
+    
+    get_categories.short_description = "Categories"
     get_tags.short_description = 'Tags'  # Custom column name
 
     formfield_overrides = {

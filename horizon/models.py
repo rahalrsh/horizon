@@ -25,12 +25,11 @@ class Tag(models.Model):
         return self.name
 
 class Category(models.Model):
-    # Used to set Category and Sub-Categories
+    # Used to set Category
     name = models.CharField(max_length=50, unique=True)
-    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='subcategories')
 
     def __str__(self):
-        return self.name if not self.parent else f"{self.parent.name} > {self.name}"
+        return self.name
 
 
 class Author(models.Model):
@@ -81,18 +80,16 @@ class Content(models.Model):
         related_name="contents"
     )
 
-    tags = models.ManyToManyField(
-        Tag,
+    categories = models.ManyToManyField(
+        Category,
         blank=True,
         related_name="contents"
     )
 
-    category = models.ForeignKey(
-        Category, 
-        on_delete=models.PROTECT,
-        null=True,
+    tags = models.ManyToManyField(
+        Tag,
         blank=True,
-        related_name='contents'
+        related_name="contents"
     )
     
     # Author Relationship (One author -> Many content)

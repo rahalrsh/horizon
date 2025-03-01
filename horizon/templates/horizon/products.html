@@ -5,10 +5,6 @@
 {% block page_content %}
 <div class="container mx-auto px-4 lg:px-8 mt-6">
 
-    <!-- Page Title -->
-    <h1 class="text-3xl font-bold text-center mb-2">Products</h1>
-    <p class="text-gray-600 text-center mb-6">Latest on products</p>
-
     <!-- Featured News Section -->
     {% if latest_contents_page.number == 1 %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -16,8 +12,7 @@
             {% for article in featured_contents %}
             {% if forloop.first %}
             <!-- Large Featured Article (Left Column) -->
-            <a href="{% url 'content_detail_path_name' article.type.name article.slug %}" 
-            class="block group">
+            <a href="{% url 'content_detail_path_name' article.type.name article.slug %}" class="block group">
                 <div class="relative">
                     <img 
                         src="{{ article.image_featured }}" 
@@ -38,8 +33,7 @@
 
             {% if forloop.counter > 1 %}
             <!-- Stacked Small Article -->
-            <a href="{% url 'content_detail_path_name' article.type.name article.slug %}" 
-            class="block group">
+            <a href="{% url 'content_detail_path_name' article.type.name article.slug %}" class="block group">
                 <div class="relative">
                     <img 
                         src="{{ article.image_featured }}" 
@@ -48,9 +42,7 @@
                         class="w-full h-[180px] md:h-[240px] object-cover rounded-lg group-hover:opacity-80 transition">
                     <div class="mt-2">
                         <p class="text-xs uppercase tracking-widest text-gray-500">{{ article.type.name }}</p>
-                        <h2 class="text-lg font-bold text-gray-900 group-hover:text-blue-500">
-                            {{ article.title }}
-                        </h2>
+                        <h2 class="text-lg font-bold text-gray-900 group-hover:text-blue-500">{{ article.title }}</h2>
                         <p class="text-xs text-gray-700 mt-1">By {{ article.author.first_name }} {{ article.author.last_name }}</p>
                     </div>
                 </div>
@@ -66,98 +58,101 @@
         </div>
     {% endif %}
 
-
     <!-- Sub Category Featured Posts Section -->
     {% if latest_contents_page.number == 1 %}
-        {% for category, articles in featured_in_category.items %}
-        <!-- Sub Category Title -->
-        <h2 class="text-xl font-bold border-b pb-2 mb-4">{{ category|title }}</h2>
-        <div class="space-y-10">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-
-                {% for article in articles %}
-                <a href="{% url 'content_detail_path_name' article.type.name article.slug %}" 
-                class="block group">
-                
-                    <!-- Image (Always on Top) -->
-                    <img 
-                        loading="lazy" 
-                        src="{{ article.image_featured }}" 
-                        alt="{{ article.title }}"
-                        {% if article.get_srcset %}srcset="{{ article.get_srcset }}"{% endif %}
-                        class="w-full h-[200px] md:h-[250px] object-cover rounded-lg group-hover:opacity-80 transition">
-                    
-                    <!-- Text Below Image -->
-                    <div class="mt-2">
-                        <h2 class="text-lg font-bold text-gray-900 group-hover:text-blue-500">
-                            {{ article.title }}
-                        </h2>
-                        <p class="text-sm font-semibold text-gray-700 mt-1">By {{ article.author.first_name }} {{ article.author.last_name }}</p>
+        <div class="mb-12">
+            {% for category, articles in featured_in_category.items %}
+                {% if articles %}
+                    <!-- Sub Category Title -->
+                    <h2 class="text-xl font-bold border-t border-gray-300 pb-1 pt-2 mb-4">
+                        {% comment %} {{ category|title }} {% endcomment %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-200 text-gray-800">
+                            {{ category|title }}
+                        </span>
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        {% for article in articles %}
+                        <a href="{% url 'content_detail_path_name' article.type.name article.slug %}" class="block group">
+                            <!-- Image (Always on Top) -->
+                            <img 
+                                loading="lazy" 
+                                src="{{ article.image_featured }}" 
+                                alt="{{ article.title }}"
+                                {% if article.get_srcset %}srcset="{{ article.get_srcset }}"{% endif %}
+                                class="w-full h-[200px] md:h-[250px] object-cover rounded-lg group-hover:opacity-80 transition">
+                            
+                            <!-- Text Below Image -->
+                            <div class="mt-2">
+                                <h2 class="text-lg font-bold text-gray-900 group-hover:text-blue-500">
+                                    {{ article.title }}
+                                </h2>
+                                <p class="text-sm font-semibold text-gray-700 mt-1">By {{ article.author.first_name }} {{ article.author.last_name }}</p>
+                            </div>
+                        </a>
+                        {% endfor %}
                     </div>
-
-                </a>
-                {% endfor %}
-
-            </div>
+                {% endif %}
+            {% endfor %}
         </div>
-        {% endfor %}
     {% endif %}
 
+    <!-- 🔹 Fixed: Wrap Latest Section in its own full-width container to ensure it stays below -->
+    <div class="w-full">
+        <!-- Latest Section (2-Column Layout) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-    <!-- Latest Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        <!-- Left Column: Latest List -->
-        <main class="lg:col-span-2">
-            <h2 class="text-xl font-bold border-b pb-2 mb-4">Latest</h2>
-            <div class="space-y-6">
-                {% for content in latest_contents_page %}
-                <a href="{% url 'content_detail_path_name' content.type.name content.slug %}" class="flex space-x-4 items-start rounded-lg transition duration-300 cursor-pointer block group">
-                    <img 
-                        loading="lazy" 
-                        src="{{ content.image_featured }}" 
-                        alt="{{ content.image_caption }}"
-                        {% if content.get_srcset %}srcset="{{ content.get_srcset }}"{% endif %}
-                        class="w-32 h-24 rounded-lg object-cover transition-transform duration-300 ease-in-out group-hover:scale-105">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 transition group-hover:text-blue-500 group-hover:underline">
-                            {{ content.title }}
-                        </h3>
-                        <p class="text-sm text-gray-600">{{ content.description|truncatewords:50 }}</p>
-                        <p class="text-xs text-gray-500 mt-1">
-                            By {{ content.author.first_name }} {{ content.author.last_name }} • {{ content.published_at|timesince }} ago
-                        </p>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-
-            <!-- Pagination Controls -->
-            <div class="mt-10 flex justify-center items-center space-x-4">
-                {% if latest_contents_page.has_previous %}
-                    <a href="?page={{ latest_contents_page.previous_page_number }}"
-                    class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-md transition duration-300 ease-in-out hover:bg-blue-500 hover:text-white">
-                        ‹ Prev
+            <!-- Left Column: Latest List -->
+            <main class="lg:col-span-2">
+                <h2 class="text-xl font-bold border-b pb-2 mb-4">Latest</h2>
+                <div class="space-y-6">
+                    {% for content in latest_contents_page %}
+                    <a href="{% url 'content_detail_path_name' content.type.name content.slug %}" 
+                       class="flex space-x-4 items-start rounded-lg transition duration-300 cursor-pointer block group">
+                        <img 
+                            loading="lazy" 
+                            src="{{ content.image_featured }}" 
+                            alt="{{ content.image_caption }}"
+                            {% if content.get_srcset %}srcset="{{ content.get_srcset }}"{% endif %}
+                            class="w-32 h-24 rounded-lg object-cover transition-transform duration-300 ease-in-out group-hover:scale-105">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 transition group-hover:text-blue-500 group-hover:underline">
+                                {{ content.title }}
+                            </h3>
+                            <p class="text-sm text-gray-600">{{ content.description|truncatewords:50 }}</p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                By {{ content.author.first_name }} {{ content.author.last_name }} • {{ content.published_at|timesince }} ago
+                            </p>
+                        </div>
                     </a>
-                {% endif %}
+                    {% endfor %}
+                </div>
 
-                {% if latest_contents_page.has_next %}
-                    <a href="?page={{ latest_contents_page.next_page_number }}"
-                    class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-md transition duration-300 ease-in-out hover:bg-blue-500 hover:text-white">
-                        Next ›
-                    </a>
-                {% endif %}
-            </div>
+                <!-- Pagination Controls -->
+                <div class="mt-10 flex justify-center items-center space-x-4">
+                    {% if latest_contents_page.has_previous %}
+                        <a href="?page={{ latest_contents_page.previous_page_number }}"
+                        class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-md transition duration-300 ease-in-out hover:bg-blue-500 hover:text-white">
+                            ‹ Prev
+                        </a>
+                    {% endif %}
 
-        </main>
+                    {% if latest_contents_page.has_next %}
+                        <a href="?page={{ latest_contents_page.next_page_number }}"
+                        class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-md transition duration-300 ease-in-out hover:bg-blue-500 hover:text-white">
+                            Next ›
+                        </a>
+                    {% endif %}
+                </div>
+            </main>
 
-        <!-- Right Column: Ad Space -->
-        <aside class="lg:col-span-1">
-            <div class="bg-gray-100 w-full h-[300px] flex items-center justify-center text-gray-500 text-sm">
-                ADVERTISEMENT
-            </div>
-        </aside>
+            <!-- Right Column: Ad Space -->
+            <aside class="lg:col-span-1">
+                <div class="bg-gray-100 w-full h-[300px] flex items-center justify-center text-gray-500 text-sm">
+                    ADVERTISEMENT
+                </div>
+            </aside>
 
+        </div>
     </div>
 </div>
 {% endblock %}
