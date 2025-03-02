@@ -69,7 +69,7 @@ class Content(models.Model):
     # SEO stuff
     meta_title = models.CharField(max_length=255, null=False, blank=False, default="")
     meta_description = models.CharField(max_length=255, null=False, blank=False, default="")
-    slug = models.SlugField(unique=True, null=False, blank=False)
+    slug = models.SlugField(unique=True, null=False, blank=False, db_index=True)
 
     # Content Management. Type, Cateogory, Tags... etc
     type = models.ForeignKey(
