@@ -35,17 +35,17 @@
             </button>
             
             <!-- Navbar Links -->
-            <nav class="hidden md:flex space-x-6">
+            {% comment %} <nav class="hidden md:flex space-x-6">
                 <a href="{% url 'products_category_page_path_name' %}" class="hover:text-gray-500">Products</a>
                 <a href="{% url 'news_type_page_path_name' %}" class="hover:text-gray-500">News</a>
-            </nav>
+            </nav> {% endcomment %}
         </div>
         
         <!-- Mobile Dropdown Menu -->
-        <nav id="mobile-menu" class="hidden md:hidden bg-gray-100 p-4">
+        {% comment %} <nav id="mobile-menu" class="hidden md:hidden bg-gray-100 p-4">
             <a href="{% url 'products_category_page_path_name' %}" class="block py-2 hover:text-gray-500">Products</a>
             <a href="{% url 'news_type_page_path_name' %}" class="block py-2 hover:text-gray-500">News</a>
-        </nav>
+        </nav> {% endcomment %}
     </header>
     
     <script>

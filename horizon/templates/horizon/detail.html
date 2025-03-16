@@ -3,36 +3,36 @@
 {% block page_title %}{{ content.meta_title}} | Horizon{% endblock %}
 
 {% block page_content %}
-<div class="container max-w-8xl mx-auto px-12 md:px-24 py-6 mx-8 bg-white rounded-lg">
+<div class="container max-w-8xl mx-auto px-0 md:px-24 py-0 md:py-6 mx-0 bg-white rounded-lg">
 
     <!-- Title & Metadata -->
     <div class="border-b pb-4 mb-6">
-        <h1 class="text-5xl font-bold text-gray-900 mb-4">{{ content.title }}</h1>
-        <h2 class="text-md text-gray-700 font-medium mb-4">{{ content.description }}</h2>
+        <h1 class="text-3xl md:text-5xl font-bold text-gray-900 mb-4">{{ content.title }}</h1>
+        <h2 class="text-md text-gray-700 font-medium">{{ content.description }}</h2>
         
-        <div class="text-gray-600 text-sm flex flex-wrap gap-2">
+        {% comment %} <div class="text-gray-600 text-sm flex flex-wrap gap-2">
             <span>⏳ Read Time: {{ content.read_time }} min</span>
             <span>📅 Updated: {{ content.updated_at | date:"l F j, Y" }}</span>
-        </div>
+        </div> {% endcomment %}
     
         <!-- Author Info -->
-        <div class="flex items-center gap-4 mt-6 p-4 bg-gray-100 rounded-lg">
+        <div class="flex items-center gap-4 p-4 rounded-lg">
             {% if author.profile_image %}
                 <img 
                     loading="lazy" 
                     src="{{ author.profile_image }}" 
                     alt="{{ author.first_name }} {{ author.last_name }}" 
                     {% if author.get_profile_srcset %}srcset="{{ author.get_profile_srcset }}"{% endif %}
-                    class="w-14 h-14 rounded-full object-cover">
+                    class="w-10 h-10 rounded-full object-cover">
             {% else %}
                 <!-- Default avatar if no profile image -->
-                <div class="w-14 h-14 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-lg">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-gray-600 text-lg">
                     {{ author.first_name.0 }}{{ author.last_name.0 }}
                 </div>
             {% endif %}
             
             <div>
-                <p class="text-lg font-semibold text-gray-900">
+                <p class="text-sm font-semibold text-gray-900">
                     {{ author.first_name }} {{ author.middle_name|default:'' }} {{ author.last_name }}
                 </p>
                 <p class="text-sm text-gray-600">{{ author.title }}</p>
@@ -60,12 +60,14 @@
             </figure>
 
             <!-- Main Content -->
-            <div class="mt-10 mx-8 md:mx-16 text-gray-800 leading-relaxed">{{ content.html_body | safe }}</div>
+            <div class="my-4 md:my-10 mx-0 text-gray-800 leading-relaxed">
+                {{ content.html_body | safe }}
+            </div>
         </div>
 
         <!-- Right Column: Related Posts and Ads -->
         <div class="md:col-span-1">
-            <h2 class="text-xl font-semibold mb-4">Related</h2>
+            <h2 class="text-xl font-semibold mb-4">RELATED</h2>
             <div class="space-y-6">
                 {% for post in related_posts %}
                 <a href="{% url 'content_detail_path_name' post.type.name post.slug %}" 
@@ -83,14 +85,6 @@
                     </div>
                 </a>
                 {% endfor %}
-            </div>
-            <!-- Ad Section -->
-            <div class="mt-8">
-                <h2 class="text-xl font-semibold mb-4">Sponsored Ads</h2>
-                <div class="bg-gray-100 p-4 rounded-lg text-center">
-                    <!-- Replace the placeholder below with your ad code -->
-                    advertisement
-                </div>
             </div>
         </div>
     </div>
