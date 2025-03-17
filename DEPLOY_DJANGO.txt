@@ -1,0 +1,282 @@
+
+https://www.youtube.com/watch?v=Td3lirXIeRI&ab_channel=freeCodeCamp.org
+
+# ============================ Create a New Droplet ============================
+
+## Connect to the Droplet via SSH
+> ssh root@64.23.211.103
+
+# ============================ Update System and Install Dependencies ============================
+> sudo apt update
+> sudo apt upgrade -y
+> sudo apt install python3-pip python3-dev python3-venv nginx git supervisor certbot python3-certbot-nginx
+
+# ============================ Create folders where all webapps are location ============================
+> mkdir /webapps
+> cd /webapps
+> mkdir horizon
+> cd horizon
+
+
+# ============================ Create user and groups ============================
+## Group name is <webapps>
+## User name is <horizon>
+> sudo groupadd --system webapps
+> sudo useradd --system --gid webapps --shell /bin/bash --home /webapps/horizon horizon
+
+
+# ============================ Setup GIT SSH keys ============================
+## switch to horizon user
+> sudo su - horizon
+
+## Check if You Have an SSH Key
+> ls -al ~/.ssh
+
+## Generate a New SSH Key (If Needed)
+> ssh-keygen -t ed25519 -C "rahalrsh@gmail.com"
+
+- Press Enter to save the key in the default location (~/.ssh/id_rsa)
+
+## Add the SSH Key to GitHub
+
+> cat ~/.ssh/id_rsa.pub
+
+- Copy key
+- Go to GitHub → Settings → SSH and GPG keys: GitHub SSH Keys
+- Click New SSH Key, paste the key, and save.
+
+## Test the SSH Connection
+> ssh -T git@github.com
+
+
+
+# ============================ Pull project from GIT ============================
+> cd /webapps/horizon/
+> git clone git@github.com:rahalrsh/horizon.git
+> logout   # to logout from horizon user and switch back to root user
+
+
+# ============================ Setup Project ============================
+## Go into project root
+> cd /webapps/horizon/horizon/
+
+## Create .env file
+> vi .env
+> Add the SECRET_KEY for prod
+
+python3
+import secrets
+print(secrets.token_urlsafe(50))  # Generates a 50-character random string
+
+
+## Create venv and install
+> python3 -m venv venv
+> source venv/bin/activate
+> pip install --upgrade pip
+> pip install -r requirements.txt
+
+
+# Run migrates
+> python manage.py migrate --settings=horizon_core.settings_prod
+
+
+# Run collectstatic
+> python manage.py collectstatic --settings=horizon_core.settings_prod
+
+
+# Create super user
+> python manage.py createsuperuser
+
+# exit from venv
+> deactivate
+
+
+# ============================ Setup GUNICORN ============================
+Gunicorn startup script that automates launching Gunicorn with predefined settings
+
+## Create a Gunicorn Startup Script
+> cd /webapps/horizon
+> vi gunicorn_start.sh
+------------------------------------------------------------
+#!/bin/sh
+
+NAME="horizon"
+DJANGODIR=/webapps/horizon/horizon
+SOCKFILE=/webapps/horizon/run/gunicorn.sock
+USER=horizon
+GROUP=webapps
+NUM_WORKERS=3
+DJANGO_SETTINGS_MODULE=horizon_core.settings_prod
+DJANGO_WSGI_MODULE=horizon_core.wsgi
+TIMEOUT=120
+
+cd $DJANGODIR
+source venv/bin/activate
+export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
+export PYTHONPATH=$DJANGODIR:$PYTHONPATH
+
+RUNDIR=$(dirname $SOCKFILE)
+test -d $RUNDIR || mkdir -p $RUNDIR
+
+exec venv/bin/gunicorn ${DJANGO_WSGI_MODULE}:application \
+    --name $NAME \
+    --workers $NUM_WORKERS \
+    --timeout $TIMEOUT \
+    --user=$USER --group=$GROUP \
+    --bind=unix:$SOCKFILE \
+    --log-level=debug \
+    --log-file=-
+
+------------------------------------------------------------
+
+##  Make the Script Executable 
+> chmod +x gunicorn_start.sh
+
+
+# ============================ Setup GUNICORN ============================
+Supervisor to run gunicorn_start.sh script instead of the raw Gunicorn command
+
+- Supervisor run in the background
+- Supervisor wil try to start gunicorn if it stops or reboot the server
+
+
+## Create conf file
+> vi /etc/supervisor/conf.d/horizon.conf
+
+------------------------------------------------------------
+[program:horizon]
+command=/webapps/horizon/gunicorn_start.sh
+user=horizon
+group=webapps
+stderr_logfile=/webapps/horizon/logs/horizon.err.log
+stdout_logfile=/webapps/horizon/logs/horizon.out.log
+redirect_stderr=true
+autostart=true
+autorestart=true
+directory=/webapps/horizon/
+------------------------------------------------------------
+
+## Create log file
+> cd /webapps/horizon
+> mkdir logs
+
+
+## Give permissions to entire /root/webapps/horizon folder
+> cd /webapps/horizon
+> chown -R horizon:webapps .
+
+## check Supervisor
+> cd /webapps/horizon
+> supervisorctl reread
+> supervisorctl update
+> supervisorctl status
+
+## To Reload after a git pull
+> supervisorctl restart horizon
+
+## Now supervisor should have started gunicorn
+
+
+
+# ============================ Setup NGINX ============================
+
+## Remove default ngix config
+> cd /etc/nginx/sites-available/
+> rm default
+
+## Create new config
+> vim horizon.conf
+
+---------------------------------------------------------------------------------------------------------------
+# Define an upstream block to connect Nginx with Gunicorn via a Unix socket
+upstream horizon_app_server {
+    server unix:/webapps/horizon/run/gunicorn.sock fail_timeout=0;
+}
+
+server {
+    # Listen on port 80 (HTTP)
+    listen 80;
+
+    # Server name (replace IP Address with your domain when you get one)
+    server_name 64.23.211.103;  # Change to yourdomain.com when ready
+
+    # Logging (Useful for debugging)
+    access_log /webapps/horizon/logs/nginx_access.log;
+    error_log /webapps/horizon/logs/nginx_error.log;
+
+    # Serve static files directly (Django's STATIC_ROOT)
+    location /static/ {
+        alias /webapps/horizon/horizon/staticfiles/;  # Matches STATIC_ROOT in Django settings.py
+        autoindex off;  # Prevents directory listing
+    }
+
+    # Serve media files directly (Django's MEDIA_ROOT)
+    location /media/ {
+        alias /webapps/horizon/horizon/media/;  # Matches MEDIA_ROOT in Django settings.py
+        autoindex off;  # Prevents directory listing
+    }
+
+    # Handle requests for Django application (via Gunicorn)
+    location / {
+        # Pass client IP to Django (important for logging & security)
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        
+        # Preserve the original Host header
+        proxy_set_header Host $http_host;
+
+        # Disable automatic redirection
+        proxy_redirect off;
+
+        # If the requested file doesn't exist, send it to Gunicorn
+        if (!-f $request_filename) {
+            proxy_pass http://horizon_app_server;
+        }
+    }
+}
+---------------------------------------------------------------------------------------------------------------
+
+
+## Create a simlink in sites-enabled
+> cd /etc/nginx/sites-enabled/
+> rm default
+> ln -s ../sites-available/horizon.conf .
+> ls -larth
+
+
+## start nginx (run both commands)
+> service nginx start
+> service nginx restart
+
+
+# ============================ SET ALLOWED HOST ============================
+
+set ALLOWED_HOSTS in settings_prod to the ip address
+
+
+# =========================== Restart Supervisor ===========================
+
+> supervisorctl restart horizon
+
+
+# ======================== CHECK SITE ========================
+
+go to 
+http://64.23.211.103/
+
+
+# ================== SETUP SSL ========================
+
+
+# ================== GIT ISSUES ======================
+
+## If git pull doesnt work with "dubious ownership"
+> sudo su - horizon   	# switch to user
+> git pull
+> exit 					# logout of this user
+
+
+If files are cached may have to this this
+> supervisorctl restart horizon
+
+
+
