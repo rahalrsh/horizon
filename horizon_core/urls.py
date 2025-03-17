@@ -17,8 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import path, include
+from django.http import HttpResponse
+
+# Google ads.txt
+def ads_txt(request):
+    content = "google.com, pub-1785022650944518, DIRECT, f08c47fec0942fa0"
+    return HttpResponse(content, content_type="text/plain")
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('horizon.urls')),
+    path('ads.txt', ads_txt),  # Serve ads.txt at the root
 ]
