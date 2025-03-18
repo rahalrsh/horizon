@@ -61,7 +61,7 @@ class HTMLConverter:
 
                 document = document.replace(
                     f'{{figure_img {block_content} figure_img}}', 
-                    f'''<figure class="w-full mx-auto text-center">
+                    f'''<figure class="w-full mx-auto text-center mb-8">
                         <img loading="lazy" {attributes} 
                             class="w-full h-auto object-cover shadow"
                         >
@@ -126,15 +126,15 @@ class HTMLConverter:
             elif tag == "ul":
                 """
                 {ul
-                    {li some text}
-                    {li some text}
-                    {li some text}
+                    {li some text li}
+                    {li some text li}
+                    {li some text li}
                 ul}
                 """
                 # Process nested <li> elements inside {ul}
                 li_matches = self.tag_patterns["li"].findall(block_content)
                 li_html = "".join([f'<li class="ml-6 list-disc">{li}</li>' for li in li_matches])
-                document = document.replace(f'{{ul{block_content}ul}}', f'<ul class="list-disc list-inside text-gray-800 space-y-2">{li_html}</ul>')
+                document = document.replace(f'{{ul{block_content}ul}}', f'<ul class="list-disc list-inside text-gray-800 space-y-2 mb-8">{li_html}</ul>')
             elif tag == "li":
                 # Replace only standalone {li} tags (not needed since ul handles it)
                 document = document.replace(f'{{li {block_content} li}}', f'<li class="ml-6 list-disc">{block_content}</li>')
