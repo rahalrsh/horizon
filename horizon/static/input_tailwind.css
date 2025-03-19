@@ -1,1 +1,46 @@
 @import "tailwindcss";
+
+:root {
+    --accent: #d0153a;
+    --accent-dark: #95122c;
+
+    --header-gradient-start: #d0153a; /* Your first color */
+    --header-gradient-end: #ff5a31; /* Your second color */
+}
+
+@layer utilities {
+    .header-gradient {
+        background: linear-gradient(160deg, var(--header-gradient-start), var(--header-gradient-end));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* text-accent */
+    .text-accent {
+        color: var(--accent);
+    }
+
+    /* hover:text-accent */
+    .hover\:text-accent {
+        @apply hover:text-[var(--accent)];
+    }
+
+    .bg-accent {
+        background-color: var(--accent);
+    }
+
+    /* hover:bg-accent */
+    .hover\:bg-accent:hover {
+        background-color: var(--accent-dark);
+    }
+
+    /* group-hover:text-accent */
+    .group-hover\:text-accent:where(.group:hover *) {
+        color: var(--accent);
+    }
+
+    /* group-hover:underline-accent */
+    .group-hover\:underline-accent:where(.group:hover *) {
+        text-decoration: underline;
+    }
+}

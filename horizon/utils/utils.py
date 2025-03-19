@@ -43,7 +43,7 @@ class HTMLConverter:
                 # {a click this link to buy on etsy blank href="https://etsy.com" target="_blank" a}
                 # {a click this link to buy on etsy self href="https://etsy.com" target="_self" a}
                 attributes, text = self.parse_a_attributes(block_content)
-                document = document.replace(f'{{a {block_content} a}}', f'<a class="hover:text-blue-800 text-[15px] sm:text-base md:text-lg underline" {attributes}>{text}</a>')
+                document = document.replace(f'{{a {block_content} a}}', f'<a class="hover:text-accent text-[15px] sm:text-base md:text-lg underline" {attributes}>{text}</a>')
             elif tag == "b":
                 document = document.replace(f'{{b {block_content} b}}', f'<strong>{block_content}</strong>')
             elif tag == "h2":
