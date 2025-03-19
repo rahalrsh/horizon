@@ -1,6 +1,7 @@
 {% extends "horizon/base.html" %}
 
-{% block page_title %}{{ content.meta_title}} | Horizon{% endblock %}
+{% block page_meta_title %}{{ content.meta_title}}{% endblock %}
+{% block page_meta_description %}{{ content.meta_description}}{% endblock %}
 
 {% block page_content %}
 <div class="container max-w-8xl mx-auto px-0 md:px-24 py-0 md:py-6 mx-0 bg-white rounded-lg">

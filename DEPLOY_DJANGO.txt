@@ -264,6 +264,9 @@ go to
 http://64.23.211.103/
 
 
+========== Add A Records in to Cloudflare ===========
+## SSL wont work without this step
+
 # ================== SETUP SSL ========================
 
 
@@ -277,6 +280,7 @@ http://64.23.211.103/
 
 If files are cached may have to this this
 > supervisorctl restart horizon
+> service nginx restart
 
 
 

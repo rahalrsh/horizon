@@ -92,3 +92,4 @@ db.sqlite3
 # custom
 media
 staticfiles
+logo/
