@@ -140,6 +140,9 @@ class Content(models.Model):
             return ""
 
         return ", ".join([f"{url} {width}" for url, width in self.image_featured_srcset.items()])
+    
+    def get_url_path(self):
+        return f"{self.type.name}/{self.slug}"
 
     
 

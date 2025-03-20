@@ -2,6 +2,9 @@ from django.shortcuts import render, get_object_or_404
 from .models import Content, Category, Type, Tag
 from django.db.models import Q
 from django.core.paginator import Paginator
+import json
+from django.utils.html import escape
+from django.utils.timezone import localtime
 
 
 def _getContentByTag(tag_name, limit):
@@ -85,10 +88,13 @@ def home(request):
     home_featured_contents = _getContentByTag("Home Featured", 5)
     recent_contents= _getRecentContent(5)
 
+    structured_data = _generate_structured_data()  # No `content`, so it generates homepage JSON-LD
+
     context = {
         'home_main_content': home_main_content,
         'home_featured_contents': home_featured_contents,
         'recent_contents': recent_contents,
+        'structured_data': structured_data,
     }
     return render(request, 'horizon/home.html', context)
 
@@ -103,13 +109,16 @@ def content_detail(request, type, slug):
         categories__in=content.categories.all(),  # Match any of the same categories
         publish=True
     ).exclude(slug=slug)  # Exclude current post
-    related_posts = related_content.order_by('-published_at')[:3]  # Get latest 3 related posts
+    related_posts = related_content.order_by('-published_at')[:5]  # Get latest 3 related posts
+
+    structured_data = _generate_structured_data(content)  # Pass `content`, so it generates NewsArticle/Review JSON-LD
 
     context = {
         'content': content,
         'author': content.author,
         'related_posts': related_posts,
-        }
+        'structured_data': structured_data,
+    }
 
     return render(request, 'horizon/detail.html', context)
 
@@ -118,8 +127,6 @@ def news_type_page(request):
     top_news_articles = _getContentByType("news", "Top News", 3)
     news_articles = _getContentByType("news", "", 100)
 
-    print(top_news_articles)
-    
     # Paginate news articles (5 per page)
     paginator = Paginator(news_articles, 4)
     page_number = request.GET.get("page")
@@ -197,3 +204,115 @@ def products_category_page(request):
     }
 
     return render(request, 'horizon/products.html', context)
+
+
+def _generate_structured_data(content=None):
+    """
+    Dynamically generates JSON-LD structured data for both the homepage and content pages.
+    
+    - If `content` is None → Generates structured data for homepage.
+    - If `content` exists → Generates structured data for NewsArticle or ReviewNewsArticle.
+    """
+    if content is None:
+        # Generate structured data for the homepage
+        structured_data = {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "The Game Horizon",
+            "url": "https://thegamehorizon.com",
+            "description": "Your ultimate source for gaming news, reviews, guides, and more.",
+            "publisher": {
+                "@type": "Organization",
+                "name": "The Game Horizon",
+                "url": "https://thegamehorizon.com",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://thegamehorizon.com/static/publisher_256x256.png",
+                    "width": 256,
+                    "height": 256
+                }
+            }
+        }
+
+        # "potentialAction": {
+        #     "@type": "SearchAction",
+        #     "target": "https://thegamehorizon.com/?s={search_term_string}",
+        #     "query-input": "required name=search_term_string"
+        # }
+    
+    else:
+        # Determine the content type: NewsArticle, ReviewNewsArticle, or General Article
+        content_type = content.type.name.lower()
+
+        # HORIZON content types
+        # news
+        # review
+        # articles
+        # comparison
+        # deal
+        # picks
+        # story
+
+        structured_data_type = "Article"
+        if content_type == "news":
+            structured_data_type = "NewsArticle"
+        elif content_type == "review":
+            structured_data_type = "ReviewNewsArticle"
+        elif content_type == "articles":
+            structured_data_type = "Article"
+        elif content_type == "comparison":
+            structured_data_type = "Article"
+        elif content_type == "deal":
+            structured_data_type = "Article"
+        elif content_type == "picks":
+            structured_data_type = "Article"
+        else:
+            structured_data_type = "Article"
+        
+        structured_data = {
+            "@context": "https://schema.org",
+            "@type": structured_data_type,
+            "headline": escape(content.title),
+            "description": escape(content.meta_description),
+            "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": content.get_url_path()
+            },
+            "author": {
+                "@type": "Person",
+                "name": f"{content.author.first_name} {content.author.last_name}"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "The Game Horizon",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://thegamehorizon.com/static/publisher_256x256.png",
+                    "width": 256,
+                    "height": 256
+                }
+            },
+            "datePublished": localtime(content.published_at).isoformat(),
+            "dateModified": localtime(content.updated_at).isoformat(),
+            "image": content.image_featured if content.image_featured else ""
+        }
+
+        # If the content is a review, add review schema
+        # if content_type == "review":
+        #     structured_data["review"] = {
+        #         "@type": "Review",
+        #         "reviewBody": escape(content.description),
+        #         "author": {
+        #             "@type": "Person",
+        #             "name": f"{content.author.first_name} {content.author.last_name}"
+        #         },
+        #         "datePublished": localtime(content.published_at).isoformat(),
+        #         "reviewRating": {
+        #             "@type": "Rating",
+        #             "ratingValue": str(content.rating if hasattr(content, "rating") else "4"),
+        #             "bestRating": "5",
+        #             "worstRating": "1"
+        #         }
+        #     }
+
+    return json.dumps(structured_data, indent=2)

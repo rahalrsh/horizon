@@ -3,6 +3,14 @@
 {% block page_meta_title %}TheGameHorizon | News{% endblock %}
 {% block page_meta_description %}Get the latest gaming news, updates, and industry trends at TheGameHorizon. Stay informed on new releases, patch notes, and esports highlights{% endblock %}
 
+{% block page_structured_data %}
+{% if structured_data %}
+<script type="application/ld+json">
+    {{ structured_data|safe }}
+</script>
+{% endif %}
+{% endblock %}
+
 {% block page_content %}
 <div class="container mx-auto px-4 lg:px-8 mt-6">
 

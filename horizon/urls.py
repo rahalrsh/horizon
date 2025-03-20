@@ -7,7 +7,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('', home, name='home'),  # Homepage
     # path('products/', products_category_page, name='products_category_page_path_name'),
-    # path('news/', news_type_page, name='news_type_page_path_name'),  # News page
+    path('news/', news_type_page, name='news_type_page_path_name'),  # News page
     path('<str:type>/<slug:slug>/', content_detail, name='content_detail_path_name'),  # Detail page
 ]
 

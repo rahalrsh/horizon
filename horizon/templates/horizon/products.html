@@ -3,6 +3,14 @@
 {% block page_meta_title %}TheGameHorizon | Gaming Gear & Accessories. Find the Best Products{% endblock %}
 {% block page_meta_description %}Explore the best gaming gear, accessories, and must-have products at TheGameHorizon. Find top-rated keyboards, mice, headsets, and more to level up your gaming setup{% endblock %}
 
+{% block page_structured_data %}
+{% if structured_data %}
+<script type="application/ld+json">
+    {{ structured_data|safe }}
+</script>
+{% endif %}
+{% endblock %}
+
 {% block page_content %}
 <div class="container mx-auto px-4 lg:px-8 mt-6">
 
