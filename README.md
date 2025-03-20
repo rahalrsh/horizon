@@ -23,6 +23,10 @@ python manage.py startapp horizon
 # RUN SERVER
 python manage.py runserver
 
+# Create initial database tables
+python manage.py migrate
+
+# CREATE SUPER USER
 python manage.py createsuperuser
     - rahal
     - rahal@horizon.com
