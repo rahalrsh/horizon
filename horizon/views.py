@@ -276,7 +276,7 @@ def _generate_structured_data(content=None):
             "description": escape(content.meta_description),
             "mainEntityOfPage": {
                 "@type": "WebPage",
-                "@id": content.get_url_path()
+                "@id": f"https://thegamehorizon.com/{content.get_url_path()}"
             },
             "author": {
                 "@type": "Person",
