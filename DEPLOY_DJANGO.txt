@@ -81,6 +81,7 @@ print(secrets.token_urlsafe(50))  # Generates a 50-character random string
 
 
 # Run collectstatic
+> source venv/bin/activate
 > python manage.py collectstatic --settings=horizon_core.settings_prod
 
 

@@ -85,8 +85,8 @@ def _getRecentContent(limit):
 
 def home(request):
     home_main_content = _getContentByTag("Home Main", 1)
-    home_featured_contents = _getContentByTag("Home Featured", 5)
-    recent_contents= _getRecentContent(5)
+    home_featured_contents = _getContentByTag("Home Featured", 20)
+    recent_contents= _getRecentContent(20)
 
     structured_data = _generate_structured_data()  # No `content`, so it generates homepage JSON-LD
 
@@ -109,7 +109,7 @@ def content_detail(request, type, slug):
         categories__in=content.categories.all(),  # Match any of the same categories
         publish=True
     ).exclude(slug=slug)  # Exclude current post
-    related_posts = related_content.order_by('-published_at')[:5]  # Get latest 3 related posts
+    related_posts = related_content.order_by('-published_at')[:6]  # Get latest 6 related posts
 
     structured_data = _generate_structured_data(content)  # Pass `content`, so it generates NewsArticle/Review JSON-LD
 
