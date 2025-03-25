@@ -257,7 +257,11 @@ def _generate_structured_data(content=None):
         if content_type == "news":
             structured_data_type = "NewsArticle"
         elif content_type == "review":
-            structured_data_type = "ReviewNewsArticle"
+            structured_data_type = "Article"
+
+            # structured_data_type = "ReviewNewsArticle" 
+            # this need itemReviewed block with item name, brand etc. 
+            # Otherwise we get Top critical issues* Missing field "itemReviewed" in google search console
         elif content_type == "articles":
             structured_data_type = "Article"
         elif content_type == "comparison":
